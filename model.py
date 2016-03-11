@@ -7,7 +7,6 @@ import tensorflow as tf
 class MemN2N(object):
     def __init__(self, config, sess):
         self.nwords = config.nwords
-        self.nwords = config.nwords
         self.init_hid = config.init_hid
         self.init_std = config.init_std
         self.batch_size = config.batch_size
@@ -37,6 +36,7 @@ class MemN2N(object):
 
         self.lr = None
         self.current_lr = config.init_lr
+        self.lr_decay = config.lr_decay
         self.loss = None
         self.step = None
         self.optim = None
@@ -212,9 +212,10 @@ class MemN2N(object):
 
                 # Learning rate annealing
                 if len(self.log_loss) > 1 and self.log_loss[idx][1] > self.log_loss[idx-1][1] * 0.9999:
-                    self.current_lr = self.current_lr / 1.5
+                    self.current_lr = self.current_lr * self.lr_decay
                     self.lr.assign(self.current_lr).eval()
-                if self.current_lr < 1e-5: break
+                if self.current_lr < 1e-5:
+                    break
 
                 if idx % 10 == 0:
                     self.saver.save(self.sess,

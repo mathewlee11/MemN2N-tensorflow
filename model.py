@@ -4,22 +4,29 @@ import random
 import numpy as np
 import tensorflow as tf
 
-class MemN2N(object):
-    def __init__(self, config, sess):
-        self.nwords = config.nwords
-        self.init_hid = config.init_hid
-        self.init_std = config.init_std
-        self.batch_size = config.batch_size
-        self.nepoch = config.nepoch
-        self.nhop = config.nhop
-        self.edim = config.edim
-        self.mem_size = config.mem_size
-        self.lindim = config.lindim
-        self.max_grad_norm = config.max_grad_norm
 
-        self.show = config.show
-        self.is_test = config.is_test
-        self.checkpoint_dir = config.checkpoint_dir
+class MemN2N(object):
+    def __init__(self, sess, nwords=None, edim=150, lindim=75, nhop=6,
+                 mem_size=100, batch_size=128, nepoch=100, lr_decay=0.99,
+                 init_hid=0.1, init_std=0.05, max_grad_norm=50, init_lr=0.01,
+                 data_dir='data', checkpoint_dir='checkpoints',
+                 data_name='ptb', is_test=False, show=False):
+        if nwords is None:
+            raise("Set nwords!")
+        self.nwords = nwords
+        self.init_hid = init_hid
+        self.init_std = init_std
+        self.batch_size = batch_size
+        self.nepoch = nepoch
+        self.nhop = nhop
+        self.edim = edim
+        self.mem_size = mem_size
+        self.lindim = lindim
+        self.max_grad_norm = max_grad_norm
+
+        self.show = show
+        self.is_test = is_test
+        self.checkpoint_dir = checkpoint_dir
 
         if not os.path.isdir(self.checkpoint_dir):
             raise Exception(" [!] Directory %s not found" % self.checkpoint_dir)
@@ -35,8 +42,8 @@ class MemN2N(object):
         self.share_list.append([])
 
         self.lr = None
-        self.current_lr = config.init_lr
-        self.lr_decay = config.lr_decay
+        self.current_lr = init_lr
+        self.lr_decay = lr_decay
         self.loss = None
         self.step = None
         self.optim = None

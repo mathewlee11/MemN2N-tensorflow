@@ -1,5 +1,6 @@
 from progress.bar import Bar
 
+
 class ProgressBar(Bar):
     message = 'Loading'
     fill = '#'

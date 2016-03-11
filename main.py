@@ -26,6 +26,7 @@ flags.DEFINE_boolean("show", False, "print progress [False]")
 
 FLAGS = flags.FLAGS
 
+
 def main(_):
     count = []
     word2idx = {}
@@ -34,7 +35,6 @@ def main(_):
     valid_data = read_data('%s/%s.valid.txt' % (FLAGS.data_dir, FLAGS.data_name), count, word2idx)
     test_data = read_data('%s/%s.test.txt' % (FLAGS.data_dir, FLAGS.data_name), count, word2idx)
 
-    idx2word = dict(zip(word2idx.values(), word2idx.keys()))
     FLAGS.nwords = len(word2idx)
 
     pp.pprint(flags.FLAGS.__flags)

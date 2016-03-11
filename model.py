@@ -66,7 +66,7 @@ class MemN2N(object):
         Bin_t = tf.nn.embedding_lookup(self.T_B, self.time)
         Bin = tf.add(Bin_c, Bin_t)
 
-        for h in xrange(self.nhop):
+        for h in range(self.nhop):
             self.hid3dim = tf.reshape(self.hid[-1], [-1, 1, self.edim])
             Aout = tf.batch_matmul(self.hid3dim, Ain, adj_y=True)
             Aout2dim = tf.reshape(Aout, [-1, self.mem_size])
@@ -124,17 +124,18 @@ class MemN2N(object):
         context = np.ndarray([self.batch_size, self.mem_size])
 
         x.fill(self.init_hid)
-        for t in xrange(self.mem_size):
+        for t in range(self.mem_size):
             time[:,t].fill(t)
 
         if self.show:
             from utils import ProgressBar
             bar = ProgressBar('Train', max=N)
 
-        for idx in xrange(N):
-            if self.show: bar.next()
+        for idx in range(N):
+            if self.show:
+                bar.next()
             target.fill(0)
-            for b in xrange(self.batch_size):
+            for b in range(self.batch_size):
                 m = random.randrange(self.mem_size, len(data))
                 target[b][data[m]] = 1
                 context[b] = data[m - self.mem_size:m]
@@ -149,7 +150,8 @@ class MemN2N(object):
                                                     self.context: context})
             cost += np.sum(loss)
 
-        if self.show: bar.finish()
+        if self.show:
+            bar.finish()
         return cost/N/self.batch_size
 
     def test(self, data, label='Test'):
@@ -158,22 +160,22 @@ class MemN2N(object):
 
         x = np.ndarray([self.batch_size, self.edim], dtype=np.float32)
         time = np.ndarray([self.batch_size, self.mem_size], dtype=np.int32)
-        target = np.zeros([self.batch_size, self.nwords]) # one-hot-encoded
+        target = np.zeros([self.batch_size, self.nwords])  # one-hot-encoded
         context = np.ndarray([self.batch_size, self.mem_size])
 
         x.fill(self.init_hid)
-        for t in xrange(self.mem_size):
-            time[:,t].fill(t)
+        for t in range(self.mem_size):
+            time[:, t].fill(t)
 
         if self.show:
             from utils import ProgressBar
             bar = ProgressBar(label, max=N)
 
-        m = self.mem_size 
-        for idx in xrange(N):
+        m = self.mem_size
+        for idx in range(N):
             if self.show: bar.next()
             target.fill(0)
-            for b in xrange(self.batch_size):
+            for b in range(self.batch_size):
                 target[b][data[m]] = 1
                 context[b] = data[m - self.mem_size:m]
                 m += 1
@@ -192,7 +194,7 @@ class MemN2N(object):
 
     def run(self, train_data, test_data):
         if not self.is_test:
-            for idx in xrange(self.nepoch):
+            for idx in range(self.nepoch):
                 train_loss = np.sum(self.train(train_data))
                 test_loss = np.sum(self.test(test_data, label='Validation'))
 
@@ -237,4 +239,3 @@ class MemN2N(object):
             self.saver.restore(self.sess, ckpt.model_checkpoint_path)
         else:
             raise Exception(" [!] Trest mode but no checkpoint found")
-

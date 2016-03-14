@@ -41,7 +41,7 @@ def main(_):
     pp.pprint(flags.FLAGS.__flags)
 
     with tf.Session() as sess:
-        model = MemN2N(sess, **dict(FLAGS))
+        model = MemN2N(sess, **(flags.FLAGS.__flags))
         model.build_model()
 
         if FLAGS.is_test:

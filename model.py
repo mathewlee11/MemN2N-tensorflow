@@ -101,18 +101,20 @@ class MemN2N(object):
     def build_model(self):
         self.build_memory()
 
-        self.W = tf.Variable(tf.random_normal([self.edim, self.nwords], stddev=self.init_std))
-        z = tf.matmul(self.hid[-1], self.W)
+        self.W = tf.Variable(tf.random_normal([self.edim, self.nwords],
+                                              stddev=self.init_std))
+        self.output = tf.matmul(self.hid[-1], self.W)
 
-        self.loss = tf.nn.softmax_cross_entropy_with_logits(z, self.target)
+        self.loss = tf.nn.softmax_cross_entropy_with_logits(self.output,
+                                                            self.target)
 
         self.lr = tf.Variable(self.current_lr)
         self.opt = tf.train.GradientDescentOptimizer(self.lr)
 
         params = [self.A, self.B, self.C, self.T_A, self.T_B, self.W]
-        grads_and_vars = self.opt.compute_gradients(self.loss,params)
-        clipped_grads_and_vars = [(tf.clip_by_norm(gv[0], self.max_grad_norm), gv[1]) \
-                                   for gv in grads_and_vars]
+        grads_and_vars = self.opt.compute_gradients(self.loss, params)
+        clipped_grads_and_vars = [(tf.clip_by_norm(gv[0], self.max_grad_norm),
+                                   gv[1]) for gv in grads_and_vars]
 
         inc = self.global_step.assign_add(1)
         with tf.control_dependencies([inc]):
@@ -127,12 +129,12 @@ class MemN2N(object):
 
         x = np.ndarray([self.batch_size, self.edim], dtype=np.float32)
         time = np.ndarray([self.batch_size, self.mem_size], dtype=np.int32)
-        target = np.zeros([self.batch_size, self.nwords]) # one-hot-encoded
+        target = np.zeros([self.batch_size, self.nwords])  # one-hot-encoded
         context = np.ndarray([self.batch_size, self.mem_size])
 
         x.fill(self.init_hid)
         for t in range(self.mem_size):
-            time[:,t].fill(t)
+            time[:, t].fill(t)
 
         if self.show:
             from utils import ProgressBar

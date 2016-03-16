@@ -94,7 +94,8 @@ class MemN2N(object):
                 self.hid.append(tf.nn.relu(Dout))
             else:
                 F = tf.slice(Dout, [0, 0], [self.batch_size, self.lindim])
-                G = tf.slice(Dout, [0, self.lindim], [self.batch_size, self.edim-self.lindim])
+                G = tf.slice(Dout, [0, self.lindim],
+                             [self.batch_size, self.edim-self.lindim])
                 K = tf.nn.relu(G)
                 self.hid.append(tf.concat(1, [F, K]))
 
@@ -182,7 +183,8 @@ class MemN2N(object):
 
         m = self.mem_size
         for idx in range(N):
-            if self.show: bar.next()
+            if self.show:
+                bar.next()
             target.fill(0)
             for b in range(self.batch_size):
                 target[b][data[m]] = 1
@@ -198,7 +200,8 @@ class MemN2N(object):
                                                          self.context: context})
             cost += np.sum(loss)
 
-        if self.show: bar.finish()
+        if self.show:
+            bar.finish()
         return cost/N/self.batch_size
 
     def run(self, train_data, test_data):
@@ -209,7 +212,8 @@ class MemN2N(object):
 
                 # Logging
                 self.log_loss.append([train_loss, test_loss])
-                self.log_perp.append([math.exp(train_loss), math.exp(test_loss)])
+                self.log_perp.append([math.exp(train_loss),
+                                      math.exp(test_loss)])
 
                 state = {
                     'perplexity': math.exp(train_loss),
@@ -229,7 +233,7 @@ class MemN2N(object):
                 if idx % 10 == 0:
                     self.saver.save(self.sess,
                                     os.path.join(self.checkpoint_dir, "MemN2N.model"),
-                                    global_step = self.step.astype(int))
+                                    global_step=self.step.astype(int))
         else:
             self.load()
 
@@ -249,3 +253,43 @@ class MemN2N(object):
             self.saver.restore(self.sess, ckpt.model_checkpoint_path)
         else:
             raise Exception(" [!] Trest mode but no checkpoint found")
+
+    def gen_words(self, data, dummy_idx, N):
+        # N = int(math.ceil(len(data) / self.batch_size))
+        data = data.copy()
+        x = np.ndarray([self.batch_size, self.edim], dtype=np.float32)
+        time = np.ndarray([self.batch_size, self.mem_size], dtype=np.int32)
+        target = np.zeros([self.batch_size, self.nwords])  # one-hot-encoded
+        context = np.ndarray([self.batch_size, self.mem_size])
+
+        x.fill(self.init_hid)
+        for t in range(self.mem_size):
+            time[:, t].fill(t)
+
+        if self.show:
+            from utils import ProgressBar
+            bar = ProgressBar('Generating', max=N)
+
+        for idx in range(N):
+            if self.show:
+                bar.next()
+
+        for n in range(N):
+            context = np.zeros([self.batch_size, self.mem_size]) + dummy_idx
+
+            min_len = min(len(data), self.mem_size)
+            context[:, -min_len:] = data[-min_len:]
+
+            prediction = self.sess.run(self.output, feed_dict={
+                    self.input: x,
+                    self.time: time,
+                    self.target: target,
+                    self.context: context})
+
+            predicted_word_index = np.argmax(prediction[0])
+            print(predicted_word_index)
+            data = np.append(data, predicted_word_index)
+
+        if self.show:
+            bar.finish()
+        return data
